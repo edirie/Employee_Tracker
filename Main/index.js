@@ -20,7 +20,8 @@ function start (){
         {
           type: 'list',
           message: 'What would you like to do?',
-          choices: ["View all Employees", "View All Roles", "View All Departments", "View Employee by Manager", "Add a New Department", "Add a New Role", "Add a New Employee", "Update an Employee Role", "Delete a row", "Quit"],
+          name: 'optionsList',
+          choices: ["View all Employees", "View All Roles", "View All Departments", "View Employee by Manager", "Add a New Department", "Add a New Role", "Add a New Employee", "Update an Employee Role", "Delete a Row", "Quit"],
           name:"choice" 
         }
 
@@ -30,7 +31,7 @@ function start (){
 
           switch(res.choice){
 
-            case "View All Employees":
+            case "View all Employees":
             employeeView();
             break;
 
@@ -81,60 +82,60 @@ function start (){
 
           
     // Viewing Functions  
-   const employeeView =  () => {
-    db.query("SELECT employee.id AS employee_id, employee.first_name, employee.last_name, employee.manager_id, roles.title, roles.salary, department.dep_name AS department FROM employee LEFT JOIN roles ON employee.role_id = roles.id LEFT JOIN department ON roles.department_id = department.id", (err, res) =>  {
-      if (err) throw err;
-      console.table(res)
-      start()
-    });
-  } 
-
-  const roleView =  () => {
-    db.query("SELECT roles.id, roles.title,  department.dep_name AS department, roles.salary FROM roles LEFT JOIN department ON roles.department_id = department.id", (err, res) =>  {
-      if (err) throw err;
-      console.table(res)
-      start()
-    });
-  } 
-
-  const departmentView =  () => {
-    db.query("SELECT department.id, department.dep_name AS department FROM department", (err, res) =>  {
-      if (err) throw err;
-      console.table(res)
-      start()
-    });
-  } 
-
-  const managerView =  () => {
-    inquirer.prompt({
-      name: "selectManager",
-      type: "input",
-      message: "Input the desired manager's ID #",
-      validate: numInput => {
-        if(isNaN(numInput)){
-          console.log("Please enter a valid salary amount!")
-          return false
-        }
-        else{
-          return true}}
-    }) 
-    .then((answer) =>{
-      console.log(answer.selectManager)
-        
-      db.query(`SELECT * FROM employee WHERE manager_id=${answer.selectManager}`, (err, res) =>  {
-        if (err) throw err;
-        console.table(res)
-        console.log(`Above displays all employees who are managed by manager ID #:${answer.selectManager}`)
-        start()
-      });
-
-
-    })} 
-
+    const employeeView =  () => {
+        db.query("SELECT employee.id AS employee_id, employee.first_name, employee.last_name, employee.manager_id, roles.title, roles.salary, department.dep_name AS department FROM employee LEFT JOIN roles ON employee.role_id = roles.id LEFT JOIN department ON roles.department_id = department.id", (err, res) =>  {
+          if (err) throw err;
+          console.table(res)
+          start()
+        });
+      } 
+    
+      const roleView =  () => {
+        db.query("SELECT roles.id, roles.title,  department.dep_name AS department, roles.salary FROM roles LEFT JOIN department ON roles.department_id = department.id", (err, res) =>  {
+          if (err) throw err;
+          console.table(res)
+          start()
+        });
+      } 
+    
+      const departmentView =  () => {
+        db.query("SELECT department.id, department.dep_name AS department FROM department", (err, res) =>  {
+          if (err) throw err;
+          console.table(res)
+          start()
+        });
+      } 
+    
+      const managerView =  () => {
+        inquirer.prompt({
+          name: "selectManager",
+          type: "input",
+          message: "Input the desired manager's ID #",
+          validate: numInput => {
+            if(isNaN(numInput)){
+              console.log("Please enter a valid salary amount!")
+              return false
+            }
+            else{
+              return true}}
+        }) 
+        .then((answer) =>{
+          console.log(answer.selectManager)
+            
+          db.query(`SELECT * FROM employee WHERE manager_id=${answer.selectManager}`, (err, res) =>  {
+            if (err) throw err;
+            console.table(res)
+            console.log(`Above displays all employees who are managed by manager ID #:${answer.selectManager}`)
+            start()
+          });
+    
+    
+        })} 
+    
 
 // Adding functions
 
-  const addDepartment = () => {
+const addDepartment = () => {
     inquirer.prompt({
         name: "addDepartment",
         type: "input",
@@ -280,32 +281,76 @@ db.query(sql1, (err, res) => {
 // Make an Update
 
 const updateEmployee = () => {
-  inquirer.prompt([
-    
-    {
-      name: "updateEmployee",
-      type: "input",
-      message: "Enter the desired employee's ID #",
-      validate: numInput => {
-        if(isNaN(numInput)){
-          console.log("The input must be a valid number!")
-          return false
+    inquirer.prompt([
+      
+      {
+        name: "updateEmployee",
+        type: "input",
+        message: "Enter the desired employee's ID #",
+        validate: numInput => {
+          if(isNaN(numInput)){
+            console.log("The input must be a valid number!")
+            return false
+          }
+          else{
+            return true
+      
+          }
+      
         }
-        else{
-          return true
+      },
     
+      {
+        name: "updateRole",
+        type: "input",
+        message: "Enter the desired employee's new role ID number",
+        validate: numInput => {
+          if(isNaN(numInput)){
+            console.log("The input must be a valid number!")
+            return false
+          }
+          else{
+            return true
+      
+          }
+      
         }
-    
       }
+  
+  
+    ]) 
+    .then((answer) => {
+      let employeeID = answer.updateEmployee
+      let newRoleID = answer.updateRole
+      console.log(employeeID, newRoleID)
+  
+      let sql = `UPDATE employee SET role_id=${newRoleID} WHERE id=${employeeID}`
+      db.query(sql, (err, res) => {
+        if (err) throw err;
+        console.log(`Employee ID: ${employeeID} role ID switched to ${newRoleID} successfully!`)
+        start()
+        })
+      })}
+  
+//  Delete functions/
+  
+  const deleteaRow = () => {
+    inquirer.prompt([
+      {
+        type: 'list',
+        message: 'Choose which table to delete a row from',
+        name: 'tableSelect',
+        choices: ["department", "roles", "employee"],
+        name:"choice" //cleans up the output
     },
   
     {
-      name: "updateRole",
-      type: "input",
-      message: "Enter the desired employee's new role ID number",
+      type: 'input',
+      message: 'Input an id number to delete!',
+      name: 'idSelect',
       validate: numInput => {
         if(isNaN(numInput)){
-          console.log("The input must be a valid number!")
+          console.log("Please enter a valid ID number!")
           return false
         }
         else{
@@ -314,63 +359,18 @@ const updateEmployee = () => {
         }
     
       }
-    }
-
-
-  ]) 
-  .then((answer) => {
-    let employeeID = answer.updateEmployee
-    let newRoleID = answer.updateRole
-    console.log(employeeID, newRoleID)
-
-    let sql = `UPDATE employee SET role_id=${newRoleID} WHERE id=${employeeID}`
-    db.query(sql, (err, res) => {
-      if (err) throw err;
-      console.log(`Employee ID: ${employeeID} role ID switched to ${newRoleID} successfully!`)
-      start()
-      })
+  }])
+    .then((res) => {
+      let tableChoice = res.choice
+      let idChoice = res.idSelect
+      console.log(tableChoice, idChoice)
+  
+      let sql = `DELETE FROM ${tableChoice} WHERE id=${idChoice}`
+  
+      db.query(sql, (err, res) => {
+        if (err) throw err;
+        console.log(`ID #: ${idChoice} has been deleted from table: ${tableChoice}`)
+        start()
+        })
+  
     })}
-
-
-    // Delete Functions
-
-const deleteaRow = () => {
-  inquirer.prompt([
-    {
-      type: 'list',
-      message: 'Choose which table to delete a row from',
-      name: 'tableSelect',
-      choices: ["department", "roles", "employee"],
-      name:"choice" 
-  },
-
-  {
-    type: 'input',
-    message: 'Input an id number to delete!',
-    name: 'idSelect',
-    validate: numInput => {
-      if(isNaN(numInput)){
-        console.log("Please enter a valid ID number!")
-        return false
-      }
-      else{
-        return true
-  
-      }
-  
-    }
-}])
-  .then((res) => {
-    let tableChoice = res.choice
-    let idChoice = res.idSelect
-    console.log(tableChoice, idChoice)
-
-    let sql = `DELETE FROM ${tableChoice} WHERE id=${idChoice}`
-
-    db.query(sql, (err, res) => {
-      if (err) throw err;
-      console.log(`ID #: ${idChoice} has been deleted from table: ${tableChoice}`)
-      start()
-      })
-
-  })}
